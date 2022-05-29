@@ -12,7 +12,6 @@ def request(url,param):
     """
     r = requests.get(f"{url}", headers={'User-Agent':'Mozzila/5.0'})
     df_list = pd.read_html(r.text)
-    print(df_list)
     df = df_list[param]
     return df
 
@@ -45,7 +44,7 @@ def market_rule():
     """
     df = request("https://www.fundamentus.com.br/fii_resultado.php",0)
     df.drop(columns=['Segmento', 'Cotação','FFO Yield', 'Valor de Mercado', 'Preço do m2', 'Aluguel por m2', 'Cap Rate', 'Vacância Média'], inplace=True)
-    df['Liquidez'] = df['Liquidez'].replace('[.]','', regex=True).astype('int64')
+    df['Liquidez'] = df['Liquidez'].replace('[.,]','', regex=True).astype('int64')
     df = df.loc[df['Liquidez'] >= 200000]
     df = df.loc[df['P/VP'] <= 100]
     df['P/VP'] = df['P/VP']/100
@@ -66,7 +65,7 @@ for codes in df['Papel']:
 # Último tratamento e regra de negócio para ser enviada ao sheets e 
 # posteriomente feita a sua análise
 tabela_fiis=pd.DataFrame(data=fiis)
-# df_final = df.join((tabela_fiis.set_index('Papel')), lsuffix="_left", on='Papel')
-# df_final['Cotacao'] = df_final['Cotacao'].replace('[^,.0-9\-]', '', regex=True)
-# df_final = df_final.loc[df_final['Desvio'] <= 0.15]
-# df_final.to_excel(f'result-{date}.xlsx', index=False)
+df_final = df.join((tabela_fiis.set_index('Papel')), lsuffix="_left", on='Papel')
+df_final['Cotacao'] = df_final['Cotacao'].replace('[^,.0-9\-]', '', regex=True)
+df_final = df_final.loc[df_final['Desvio'] <= 0.25]
+df_final.to_excel(f'result-{date}.xlsx', index=False)
