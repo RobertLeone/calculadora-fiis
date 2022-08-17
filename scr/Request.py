@@ -1,4 +1,3 @@
-from numpy import int64, integer
 import pandas as pd
 import requests
 from datetime import datetime
@@ -50,12 +49,12 @@ def market_rule():
     df['P/VP'] = df['P/VP']/100
     return df
 
-df = market_rule()
+df_fiis_list = market_rule()
 
-for codes in df['Papel']:
+for codes in df_fiis_list['Papel']:
     """
-    Request no site com informações dos últimos dividendos pagos para avaliação de métricas
-    utilizamos o for para pergamos informações dos últimos 10 meses de todos os fiis puxados
+    Request no site com informações dos últimos dividendos pagos para avaliação de métricas.
+    utilizo o for para pegar informações dos últimos 10 meses de todos os fiis puxados
     da fundamentus.
     """
     dataframe = request(f"https://fiis.com.br/{codes}/",1)
@@ -65,7 +64,7 @@ for codes in df['Papel']:
 # Último tratamento e regra de negócio para ser enviada ao sheets e 
 # posteriomente feita a sua análise
 tabela_fiis=pd.DataFrame(data=fiis)
-df_final = df.join((tabela_fiis.set_index('Papel')), lsuffix="_left", on='Papel')
+df_final = df_fiis_list.join((tabela_fiis.set_index('Papel')), lsuffix="_left", on='Papel')
 df_final['Cotacao'] = df_final['Cotacao'].replace('[^,.0-9\-]', '', regex=True)
 df_final = df_final.loc[df_final['Desvio'] <= 0.25]
 df_final.to_excel(f'result-{date}.xlsx', index=False)
